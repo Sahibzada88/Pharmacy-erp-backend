@@ -6,8 +6,8 @@ dj-database-url==2.2.0
 python-decouple==3.8
 django-cors-headers==4.3.1
 django-filter==24.2
-drf-yasg==1.21.7
-setuptools>=75.0.0
+drf-yasg>=1.21.8
+setuptools=75.0.0
 gunicorn==22.0.0
 whitenoise==6.6.0
 django-extensions==3.2.3
