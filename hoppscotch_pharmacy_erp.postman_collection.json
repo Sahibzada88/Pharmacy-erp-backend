@@ -1,0 +1,192 @@
+{
+  "info": {
+    "_postman_id": "9b0d2f3e-7b2d-4f4f-9f2d-pharmacy-erp",
+    "name": "Pharmacy Chain ERP API",
+    "description": "Complete API collection for the Pharmacy Chain ERP. Import this Postman v2.1 collection into Hoppscotch. Run Auth > Login first; the test script stores access_token and refresh_token automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key":"baseUrl","value":"http://127.0.0.1:8000","type":"string"},
+    {"key":"access_token","value":"","type":"string"},
+    {"key":"refresh_token","value":"","type":"string"},
+    {"key":"branch_id","value":"1","type":"string"},
+    {"key":"staff_id","value":"2","type":"string"},
+    {"key":"category_id","value":"1","type":"string"},
+    {"key":"manufacturer_id","value":"1","type":"string"},
+    {"key":"medicine_id","value":"1","type":"string"},
+    {"key":"batch_id","value":"1","type":"string"},
+    {"key":"movement_id","value":"1","type":"string"},
+    {"key":"supplier_id","value":"1","type":"string"},
+    {"key":"purchase_order_id","value":"1","type":"string"},
+    {"key":"payment_id","value":"1","type":"string"},
+    {"key":"invoice_id","value":"1","type":"string"},
+    {"key":"sale_item_id","value":"1","type":"string"},
+    {"key":"bank_account_id","value":"1","type":"string"},
+    {"key":"bank_transaction_id","value":"1","type":"string"},
+    {"key":"cash_register_id","value":"1","type":"string"},
+    {"key":"expense_category_id","value":"1","type":"string"},
+    {"key":"expense_id","value":"1","type":"string"},
+    {"key":"customer_id","value":"1","type":"string"},
+    {"key":"loyalty_transaction_id","value":"1","type":"string"},
+    {"key":"note_id","value":"1","type":"string"},
+    {"key":"date_from","value":"2026-01-01","type":"string"},
+    {"key":"date_to","value":"2026-12-31","type":"string"}
+  ],
+  "auth": {"type":"bearer","bearer":[{"key":"token","value":"{{access_token}}","type":"string"}]},
+  "item": [
+    {
+      "name":"Auth",
+      "item":[
+        {"name":"Login","event":[{"listen":"test","script":{"exec":["const data = pm.response.json();","pm.collectionVariables.set('access_token', data.access);","pm.collectionVariables.set('refresh_token', data.refresh);"]}}],"request":{"auth":{"type":"noauth"},"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"username\": \"owner\",\n  \"password\": \"Owner@12345\"\n}"},"url":{"raw":"{{baseUrl}}/api/auth/login/","host":["{{baseUrl}}"],"path":["api","auth","login",""]}}},
+        {"name":"Refresh access token","request":{"auth":{"type":"noauth"},"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"refresh\": \"{{refresh_token}}\"\n}"},"url":"{{baseUrl}}/api/auth/token/refresh/"}},
+        {"name":"Current user","request":{"method":"GET","url":"{{baseUrl}}/api/auth/me/"}},
+        {"name":"List staff","request":{"method":"GET","url":"{{baseUrl}}/api/auth/staff/?role=CASHIER&is_active_staff=true"}},
+        {"name":"Create staff","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"username\": \"cashier2\",\n  \"email\": \"cashier2@example.com\",\n  \"first_name\": \"Demo\",\n  \"last_name\": \"Cashier\",\n  \"password\": \"Cashier@12345\",\n  \"role\": \"CASHIER\",\n  \"branch\": {{branch_id}},\n  \"phone\": \"03001234567\",\n  \"cnic\": \"00000-0000000-0\"\n}"},"url":"{{baseUrl}}/api/auth/staff/"}},
+        {"name":"Get staff","request":{"method":"GET","url":"{{baseUrl}}/api/auth/staff/{{staff_id}}/"}},
+        {"name":"Update staff","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"phone\": \"03009999999\",\n  \"is_active_staff\": true\n}"},"url":"{{baseUrl}}/api/auth/staff/{{staff_id}}/"}},
+        {"name":"Delete staff","request":{"method":"DELETE","url":"{{baseUrl}}/api/auth/staff/{{staff_id}}/"}},
+        {"name":"Change password","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"old_password\": \"Owner@12345\",\n  \"new_password\": \"Owner@123456\"\n}"},"url":"{{baseUrl}}/api/auth/change-password/"}}
+      ]
+    },
+    {
+      "name":"Branches",
+      "item":[
+        {"name":"List branches","request":{"method":"GET","url":"{{baseUrl}}/api/branches/"}},
+        {"name":"Create branch","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"North Pharmacy\",\n  \"code\": \"NORTH-01\",\n  \"address\": \"North Market\",\n  \"city\": \"Islamabad\",\n  \"phone\": \"0511234567\",\n  \"license_number\": \"LIC-NORTH-01\",\n  \"is_active\": true,\n  \"opened_on\": \"2026-09-05\"\n}"},"url":"{{baseUrl}}/api/branches/"}},
+        {"name":"Get branch","request":{"method":"GET","url":"{{baseUrl}}/api/branches/{{branch_id}}/"}},
+        {"name":"Update branch","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"phone\": \"0517654321\",\n  \"is_active\": true\n}"},"url":"{{baseUrl}}/api/branches/{{branch_id}}/"}},
+        {"name":"Delete branch","request":{"method":"DELETE","url":"{{baseUrl}}/api/branches/{{branch_id}}/"}}
+      ]
+    },
+    {
+      "name":"Inventory",
+      "item":[
+        {"name":"List categories","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/categories/"}},
+        {"name":"Create category","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Antibiotics\",\n  \"description\": \"Antibiotic medicines\"\n}"},"url":"{{baseUrl}}/api/inventory/categories/"}},
+        {"name":"Get category","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/categories/{{category_id}}/"}},
+        {"name":"Update category","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"description\": \"Updated category description\"\n}"},"url":"{{baseUrl}}/api/inventory/categories/{{category_id}}/"}},
+        {"name":"Delete category","request":{"method":"DELETE","url":"{{baseUrl}}/api/inventory/categories/{{category_id}}/"}},
+        {"name":"List manufacturers","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/manufacturers/"}},
+        {"name":"Create manufacturer","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Demo Pharma\",\n  \"country\": \"Pakistan\"\n}"},"url":"{{baseUrl}}/api/inventory/manufacturers/"}},
+        {"name":"Get manufacturer","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/manufacturers/{{manufacturer_id}}/"}},
+        {"name":"Update manufacturer","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"country\": \"Pakistan\"\n}"},"url":"{{baseUrl}}/api/inventory/manufacturers/{{manufacturer_id}}/"}},
+        {"name":"Delete manufacturer","request":{"method":"DELETE","url":"{{baseUrl}}/api/inventory/manufacturers/{{manufacturer_id}}/"}},
+        {"name":"List medicines","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/medicines/?search=paracetamol&is_active=true&ordering=name"}},
+        {"name":"Create medicine","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Paracetamol 500mg\",\n  \"generic_name\": \"Paracetamol\",\n  \"sku\": \"PCM-500-DEMO\",\n  \"barcode\": \"890000000001\",\n  \"category\": {{category_id}},\n  \"manufacturer\": {{manufacturer_id}},\n  \"unit_type\": \"TABLET\",\n  \"pack_size\": \"10 tablets/strip\",\n  \"requires_prescription\": false,\n  \"is_active\": true,\n  \"reorder_level\": 10\n}"},"url":"{{baseUrl}}/api/inventory/medicines/"}},
+        {"name":"Get medicine","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/medicines/{{medicine_id}}/?branch={{branch_id}}"}},
+        {"name":"Update medicine","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"reorder_level\": 20,\n  \"is_active\": true\n}"},"url":"{{baseUrl}}/api/inventory/medicines/{{medicine_id}}/"}},
+        {"name":"Delete medicine","request":{"method":"DELETE","url":"{{baseUrl}}/api/inventory/medicines/{{medicine_id}}/"}},
+        {"name":"Low stock medicines","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/medicines/low_stock/?branch={{branch_id}}"}},
+        {"name":"List batches","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/batches/?branch={{branch_id}}&medicine={{medicine_id}}&is_active=true&ordering=expiry_date"}},
+        {"name":"Create batch","method":"POST","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"medicine\": {{medicine_id}},\n  \"branch\": {{branch_id}},\n  \"batch_number\": \"DEMO-BATCH-001\",\n  \"quantity_received\": 100,\n  \"quantity_remaining\": 100,\n  \"cost_price\": \"10.00\",\n  \"sale_price\": \"15.00\",\n  \"expiry_date\": \"2027-12-31\",\n  \"is_active\": true\n}"},"url":"{{baseUrl}}/api/inventory/batches/"}},
+        {"name":"Get batch","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/batches/{{batch_id}}/"}},
+        {"name":"Update batch","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"is_active\": true,\n  \"sale_price\": \"16.00\"\n}"},"url":"{{baseUrl}}/api/inventory/batches/{{batch_id}}/"}},
+        {"name":"Delete batch","request":{"method":"DELETE","url":"{{baseUrl}}/api/inventory/batches/{{batch_id}}/"}},
+        {"name":"Expiring batches","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/batches/expiring_soon/?days=60&branch={{branch_id}}"}},
+        {"name":"Adjust stock","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"batch\": {{batch_id}},\n  \"quantity\": 1,\n  \"movement_type\": \"ADJUSTMENT\",\n  \"note\": \"Cycle count correction\"\n}"},"url":"{{baseUrl}}/api/inventory/batches/adjust/"}},
+        {"name":"Transfer stock","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"batch\": {{batch_id}},\n  \"to_branch\": {{branch_id}},\n  \"quantity\": 1\n}"},"url":"{{baseUrl}}/api/inventory/batches/transfer/"}},
+        {"name":"List stock movements","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/stock-movements/?branch={{branch_id}}&batch={{batch_id}}&ordering=-created_at"}},
+        {"name":"Get stock movement","request":{"method":"GET","url":"{{baseUrl}}/api/inventory/stock-movements/{{movement_id}}/"}}
+      ]
+    },
+    {
+      "name":"Suppliers",
+      "item":[
+        {"name":"List suppliers","request":{"method":"GET","url":"{{baseUrl}}/api/suppliers/suppliers/?search=demo"}},
+        {"name":"Create supplier","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Demo Distributors\",\n  \"contact_person\": \"Ali Khan\",\n  \"phone\": \"03001112222\",\n  \"email\": \"sales@demo-distributors.example\",\n  \"address\": \"Industrial Area\",\n  \"is_active\": true\n}"},"url":"{{baseUrl}}/api/suppliers/suppliers/"}},
+        {"name":"Get supplier","request":{"method":"GET","url":"{{baseUrl}}/api/suppliers/suppliers/{{supplier_id}}/"}},
+        {"name":"Update supplier","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"phone\": \"03003334444\"\n}"},"url":"{{baseUrl}}/api/suppliers/suppliers/{{supplier_id}}/"}},
+        {"name":"Delete supplier","request":{"method":"DELETE","url":"{{baseUrl}}/api/suppliers/suppliers/{{supplier_id}}/"}},
+        {"name":"List purchase orders","request":{"method":"GET","url":"{{baseUrl}}/api/suppliers/purchase-orders/?branch={{branch_id}}&status=DRAFT&ordering=-created_at"}},
+        {"name":"Create purchase order","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"branch\": {{branch_id}},\n  \"supplier\": {{supplier_id}},\n  \"po_number\": \"PO-DEMO-001\",\n  \"status\": \"DRAFT\",\n  \"expected_date\": \"2026-10-01\",\n  \"notes\": \"Demo purchase order\",\n  \"items\": [\n    {\n      \"medicine\": {{medicine_id}},\n      \"quantity_ordered\": 20,\n      \"quantity_received\": 0,\n      \"unit_cost\": \"10.00\",\n      \"unit_sale_price\": \"15.00\",\n      \"batch_number\": \"PO-DEMO-BATCH\",\n      \"expiry_date\": \"2027-12-31\"\n    }\n  ]\n}"},"url":"{{baseUrl}}/api/suppliers/purchase-orders/"}},
+        {"name":"Get purchase order","request":{"method":"GET","url":"{{baseUrl}}/api/suppliers/purchase-orders/{{purchase_order_id}}/"}},
+        {"name":"Update purchase order","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"status\": \"ORDERED\",\n  \"notes\": \"Approved for ordering\"\n}"},"url":"{{baseUrl}}/api/suppliers/purchase-orders/{{purchase_order_id}}/"}},
+        {"name":"Receive purchase order","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"item_ids\": []\n}"},"url":"{{baseUrl}}/api/suppliers/purchase-orders/{{purchase_order_id}}/receive/"}},
+        {"name":"Delete purchase order","request":{"method":"DELETE","url":"{{baseUrl}}/api/suppliers/purchase-orders/{{purchase_order_id}}/"}},
+        {"name":"List supplier payments","request":{"method":"GET","url":"{{baseUrl}}/api/suppliers/payments/?branch={{branch_id}}&supplier={{supplier_id}}&method=BANK_TRANSFER"}},
+        {"name":"Create supplier payment","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"supplier\": {{supplier_id}},\n  \"purchase_order\": {{purchase_order_id}},\n  \"branch\": {{branch_id}},\n  \"bank_account\": {{bank_account_id}},\n  \"amount\": \"50.00\",\n  \"method\": \"BANK_TRANSFER\",\n  \"reference_number\": \"PAY-DEMO-001\",\n  \"note\": \"Demo supplier payment\"\n}"},"url":"{{baseUrl}}/api/suppliers/payments/"}},
+        {"name":"Get supplier payment","request":{"method":"GET","url":"{{baseUrl}}/api/suppliers/payments/{{payment_id}}/"}},
+        {"name":"Update supplier payment","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"note\": \"Updated payment note\"\n}"},"url":"{{baseUrl}}/api/suppliers/payments/{{payment_id}}/"}},
+        {"name":"Delete supplier payment","request":{"method":"DELETE","url":"{{baseUrl}}/api/suppliers/payments/{{payment_id}}/"}}
+      ]
+    },
+    {
+      "name":"Sales and POS",
+      "item":[
+        {"name":"Checkout sale","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"customer\": null,\n  \"items\": [\n    {\n      \"medicine_id\": {{medicine_id}},\n      \"quantity\": 1,\n      \"discount_amount\": \"0.00\",\n      \"batch_id\": {{batch_id}}\n    }\n  ],\n  \"payments\": [\n    {\n      \"method\": \"CASH\",\n      \"amount\": \"15.00\",\n      \"bank_account\": null,\n      \"reference_number\": \"\"\n    }\n  ],\n  \"discount_amount\": \"0.00\",\n  \"tax_amount\": \"0.00\",\n  \"note\": \"Demo POS checkout\"\n}"},"url":"{{baseUrl}}/api/sales/checkout/"}},
+        {"name":"List invoices","request":{"method":"GET","url":"{{baseUrl}}/api/sales/invoices/?branch={{branch_id}}&status=COMPLETED&ordering=-created_at"}},
+        {"name":"Get invoice","request":{"method":"GET","url":"{{baseUrl}}/api/sales/invoices/{{invoice_id}}/"}},
+        {"name":"Process return","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"sale_item\": {{sale_item_id}},\n  \"quantity\": 1,\n  \"reason\": \"Customer return\"\n}"},"url":"{{baseUrl}}/api/sales/returns/"}}
+      ]
+    },
+    {
+      "name":"Finance",
+      "item":[
+        {"name":"List bank accounts","request":{"method":"GET","url":"{{baseUrl}}/api/finance/bank-accounts/?branch={{branch_id}}&is_active=true"}},
+        {"name":"Create bank account","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"branch\": {{branch_id}},\n  \"bank_name\": \"Demo Bank\",\n  \"account_title\": \"Main Pharmacy Account\",\n  \"account_number\": \"DEMO-ACC-001\",\n  \"iban\": \"PK00DEMO0000000000000001\",\n  \"current_balance\": \"0.00\",\n  \"is_active\": true\n}"},"url":"{{baseUrl}}/api/finance/bank-accounts/"}},
+        {"name":"Get bank account","request":{"method":"GET","url":"{{baseUrl}}/api/finance/bank-accounts/{{bank_account_id}}/"}},
+        {"name":"Update bank account","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"is_active\": true\n}"},"url":"{{baseUrl}}/api/finance/bank-accounts/{{bank_account_id}}/"}},
+        {"name":"Delete bank account","request":{"method":"DELETE","url":"{{baseUrl}}/api/finance/bank-accounts/{{bank_account_id}}/"}},
+        {"name":"List bank transactions","request":{"method":"GET","url":"{{baseUrl}}/api/finance/bank-transactions/?bank_account={{bank_account_id}}&branch={{branch_id}}&tx_type=DEPOSIT"}},
+        {"name":"Create bank transaction","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"bank_account\": {{bank_account_id}},\n  \"branch\": {{branch_id}},\n  \"tx_type\": \"DEPOSIT\",\n  \"amount\": \"1000.00\",\n  \"reference_number\": \"TX-DEMO-001\",\n  \"note\": \"Opening deposit\"\n}"},"url":"{{baseUrl}}/api/finance/bank-transactions/"}},
+        {"name":"Get bank transaction","request":{"method":"GET","url":"{{baseUrl}}/api/finance/bank-transactions/{{bank_transaction_id}}/"}},
+        {"name":"Update bank transaction","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"note\": \"Updated transaction note\"\n}"},"url":"{{baseUrl}}/api/finance/bank-transactions/{{bank_transaction_id}}/"}},
+        {"name":"Delete bank transaction","request":{"method":"DELETE","url":"{{baseUrl}}/api/finance/bank-transactions/{{bank_transaction_id}}/"}},
+        {"name":"List cash registers","request":{"method":"GET","url":"{{baseUrl}}/api/finance/cash-registers/?branch={{branch_id}}&status=OPEN"}},
+        {"name":"Open cash register","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"opening_balance\": \"500.00\",\n  \"expected_closing_balance\": \"500.00\"\n}"},"url":"{{baseUrl}}/api/finance/cash-registers/"}},
+        {"name":"Get cash register","request":{"method":"GET","url":"{{baseUrl}}/api/finance/cash-registers/{{cash_register_id}}/"}},
+        {"name":"Close cash register","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"counted_closing_balance\": \"500.00\"\n}"},"url":"{{baseUrl}}/api/finance/cash-registers/{{cash_register_id}}/close/"}},
+        {"name":"Update cash register","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"expected_closing_balance\": \"500.00\"\n}"},"url":"{{baseUrl}}/api/finance/cash-registers/{{cash_register_id}}/"}},
+        {"name":"Delete cash register","request":{"method":"DELETE","url":"{{baseUrl}}/api/finance/cash-registers/{{cash_register_id}}/"}},
+        {"name":"List expense categories","request":{"method":"GET","url":"{{baseUrl}}/api/finance/expense-categories/"}},
+        {"name":"Create expense category","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Marketing\"\n}"},"url":"{{baseUrl}}/api/finance/expense-categories/"}},
+        {"name":"Get expense category","request":{"method":"GET","url":"{{baseUrl}}/api/finance/expense-categories/{{expense_category_id}}/"}},
+        {"name":"Update expense category","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Marketing and Promotions\"\n}"},"url":"{{baseUrl}}/api/finance/expense-categories/{{expense_category_id}}/"}},
+        {"name":"Delete expense category","request":{"method":"DELETE","url":"{{baseUrl}}/api/finance/expense-categories/{{expense_category_id}}/"}},
+        {"name":"List expenses","request":{"method":"GET","url":"{{baseUrl}}/api/finance/expenses/?branch={{branch_id}}&category={{expense_category_id}}&paid_from=CASH"}},
+        {"name":"Create expense","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"branch\": {{branch_id}},\n  \"category\": {{expense_category_id}},\n  \"amount\": \"100.00\",\n  \"paid_from\": \"CASH\",\n  \"bank_account\": null,\n  \"description\": \"Demo operational expense\"\n}"},"url":"{{baseUrl}}/api/finance/expenses/"}},
+        {"name":"Get expense","request":{"method":"GET","url":"{{baseUrl}}/api/finance/expenses/{{expense_id}}/"}},
+        {"name":"Update expense","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"description\": \"Updated expense description\"\n}"},"url":"{{baseUrl}}/api/finance/expenses/{{expense_id}}/"}},
+        {"name":"Delete expense","request":{"method":"DELETE","url":"{{baseUrl}}/api/finance/expenses/{{expense_id}}/"}}
+      ]
+    },
+    {
+      "name":"CRM",
+      "item":[
+        {"name":"List customers","request":{"method":"GET","url":"{{baseUrl}}/api/crm/customers/?search=0300&is_active=true"}},
+        {"name":"Create customer","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Demo Customer\",\n  \"phone\": \"03009998877\",\n  \"email\": \"customer@example.com\",\n  \"address\": \"Islamabad\",\n  \"home_branch\": {{branch_id}},\n  \"loyalty_points\": 0,\n  \"is_active\": true\n}"},"url":"{{baseUrl}}/api/crm/customers/"}},
+        {"name":"Get customer","request":{"method":"GET","url":"{{baseUrl}}/api/crm/customers/{{customer_id}}/"}},
+        {"name":"Update customer","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"address\": \"Updated address\"\n}"},"url":"{{baseUrl}}/api/crm/customers/{{customer_id}}/"}},
+        {"name":"Delete customer","request":{"method":"DELETE","url":"{{baseUrl}}/api/crm/customers/{{customer_id}}/"}},
+        {"name":"List loyalty transactions","request":{"method":"GET","url":"{{baseUrl}}/api/crm/loyalty-transactions/?customer={{customer_id}}&tx_type=EARNED"}},
+        {"name":"Get loyalty transaction","request":{"method":"GET","url":"{{baseUrl}}/api/crm/loyalty-transactions/{{loyalty_transaction_id}}/"}},
+        {"name":"List customer notes","request":{"method":"GET","url":"{{baseUrl}}/api/crm/notes/?customer={{customer_id}}"}},
+        {"name":"Create customer note","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"customer\": {{customer_id}},\n  \"note\": \"Customer prefers SMS notifications.\"\n}"},"url":"{{baseUrl}}/api/crm/notes/"}},
+        {"name":"Get customer note","request":{"method":"GET","url":"{{baseUrl}}/api/crm/notes/{{note_id}}/"}},
+        {"name":"Update customer note","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"note\": \"Updated customer note.\"\n}"},"url":"{{baseUrl}}/api/crm/notes/{{note_id}}/"}},
+        {"name":"Delete customer note","request":{"method":"DELETE","url":"{{baseUrl}}/api/crm/notes/{{note_id}}/"}}
+      ]
+    },
+    {
+      "name":"Analytics",
+      "item":[
+        {"name":"Owner dashboard","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/owner-dashboard/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}},
+        {"name":"Sales summary","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/sales/summary/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}},
+        {"name":"Daily sales trend","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/sales/daily-trend/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}},
+        {"name":"Top selling medicines","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/sales/top-medicines/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}&limit=10"}},
+        {"name":"Cashier performance","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/sales/cashier-performance/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}},
+        {"name":"Payment method breakdown","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/sales/payment-methods/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}},
+        {"name":"Stock valuation","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/inventory/stock-valuation/?branch={{branch_id}}"}},
+        {"name":"Stock valuation by branch","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/inventory/stock-valuation-by-branch/"}},
+        {"name":"Expiry report","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/inventory/expiry-report/?branch={{branch_id}}&days=60"}},
+        {"name":"Low stock report","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/inventory/low-stock/?branch={{branch_id}}"}},
+        {"name":"Bank balance summary","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/finance/bank-balance/?branch={{branch_id}}"}},
+        {"name":"Cash position","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/finance/cash-position/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}},
+        {"name":"Expense breakdown","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/finance/expense-breakdown/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}},
+        {"name":"Profit and loss","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/finance/profit-and-loss/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}},
+        {"name":"Supplier dues","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/suppliers/dues/?branch={{branch_id}}"}},
+        {"name":"Supplier payment trend","request":{"method":"GET","url":"{{baseUrl}}/api/analytics/suppliers/payment-trend/?branch={{branch_id}}&date_from={{date_from}}&date_to={{date_to}}"}}
+      ]
+    }
+  ]
+}
