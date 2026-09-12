@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import timedelta
 from decouple import config, Csv
 import dj_database_url
-
+import re
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-change-me')
@@ -145,15 +145,59 @@ MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# # -------------------------------------------------------------------
+# # CORS
+# # -------------------------------------------------------------------
+# CORS_ALLOWED_ORIGINS = [
+#     "https://pharmacy-erp-frontend-imxu2beun.vercel.app",
+
+#     # Local development
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+# ]
+# CORS_ALLOWED_ORIGIN_REGEXES = [
+#     r"^https://pharmacy-erp-frontend-[a-zA-Z0-9-]+\.vercel\.app$",
+# ]
+
+# CORS_ALLOW_CREDENTIALS = True
+
+# CORS_ALLOW_METHODS = [
+#     "DELETE",
+#     "GET",
+#     "OPTIONS",
+#     "PATCH",
+#     "POST",
+#     "PUT",
+# ]
+
+# CORS_ALLOW_HEADERS = [
+#     "accept",
+#     "authorization",
+#     "content-type",
+#     "user-agent",
+#     "x-csrftoken",
+#     "x-requested-with",
+# ]
+
+# CSRF_TRUSTED_ORIGIN_REGEXES = [
+#     r"^https://pharmacy-erp-frontend-[a-zA-Z0-9-]+\.vercel\.app$",
+# ]
+
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://pharmacy-erp-frontend-imxu2beun.vercel.app",
+
+#     # Local development
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+# ]
+
+
 # -------------------------------------------------------------------
 # CORS
 # -------------------------------------------------------------------
-CORS_ALLOWED_ORIGINS = [
-    "https://pharmacy-erp-frontend-imxu2beun.vercel.app",
 
-    # Local development
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://pharmacy-erp-frontend-[a-zA-Z0-9-]+\.vercel\.app$",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -167,22 +211,15 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "authorization",
-    "content-type",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
+CSRF_TRUSTED_ORIGIN_REGEXES = [
+    r"^https://pharmacy-erp-frontend-[a-zA-Z0-9-]+\.vercel\.app$",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://pharmacy-erp-frontend-imxu2beun.vercel.app",
-
-    # Local development
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
 # -------------------------------------------------------------------
 # DRF + JWT
 # -------------------------------------------------------------------
