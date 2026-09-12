@@ -52,16 +52,32 @@ INSTALLED_APPS = [
     'apps.analytics',
 ]
 
+# MIDDLEWARE = [
+#     'django.middleware.common.CommonMiddleware',
+#     'django.middleware.security.SecurityMiddleware',
+#     'whitenoise.middleware.WhiteNoiseMiddleware',
+#     'corsheaders.middleware.CorsMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+#     'apps.accounts.middleware.ActiveBranchMiddleware',
+# ]
+
 MIDDLEWARE = [
-    'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
     'apps.accounts.middleware.ActiveBranchMiddleware',
 ]
 
@@ -132,10 +148,38 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # -------------------------------------------------------------------
 # CORS
 # -------------------------------------------------------------------
-CORS_ALLOWED_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://pharmacy-erp-frontend-imxu2beun.vercel.app",
+
+    # Local development
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.vercel.app",  # Wildcard trusts any frontend Vercel layout preview link
+    "https://pharmacy-erp-frontend-imxu2beun.vercel.app",
+
+    # Local development
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
