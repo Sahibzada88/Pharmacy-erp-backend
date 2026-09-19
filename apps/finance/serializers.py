@@ -3,6 +3,7 @@ from django.db.models import F
 from rest_framework import serializers
 
 from .models import BankAccount, BankTransaction, CashRegister, ExpenseCategory, Expense
+from apps.accounts.mixins import BranchAutoAssignSerializerMixin
 
 
 class BankAccountSerializer(serializers.ModelSerializer):
@@ -56,10 +57,11 @@ class CashRegisterSerializer(serializers.ModelSerializer):
             'opening_balance', 'expected_closing_balance', 'counted_closing_balance',
             'status', 'variance', 'opened_at', 'closed_at',
         ]
-        read_only_fields = ['opened_by', 'closed_by', 'status', 'opened_at', 'closed_at']
+        read_only_fields = ['branch', 'opened_by', 'closed_by', 'status', 'opened_at', 'closed_at']
 
     def create(self, validated_data):
         request = self.context['request']
+        validated_data.pop('branch', None)
         return CashRegister.objects.create(opened_by=request.user, branch=request.user.branch, **validated_data)
 
 
@@ -84,7 +86,7 @@ class ExpenseCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
-class ExpenseSerializer(serializers.ModelSerializer):
+class ExpenseSerializer(BranchAutoAssignSerializerMixin, serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     branch_name = serializers.CharField(source='branch.name', read_only=True)
 
@@ -96,6 +98,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
             'created_by', 'created_at',
         ]
         read_only_fields = ['expense_date', 'created_by', 'created_at']
+        extra_kwargs = {'branch': {'required': False}}
 
     def create(self, validated_data):
         request = self.context['request']

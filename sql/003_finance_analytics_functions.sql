@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION fn_bank_balance_summary(
     p_branch_id INTEGER
 )
 RETURNS TABLE (
-    bank_account_id INTEGER,
+    bank_account_id BIGINT,
     bank_name VARCHAR,
     account_number VARCHAR,
     branch_name VARCHAR,
@@ -42,7 +42,7 @@ CREATE OR REPLACE FUNCTION fn_cash_position(
     p_date_to DATE
 )
 RETURNS TABLE (
-    branch_id INTEGER,
+    branch_id BIGINT,
     branch_name VARCHAR,
     cash_sales NUMERIC,
     cash_deposited_to_bank NUMERIC,
@@ -139,10 +139,12 @@ RETURNS TABLE (
 ) AS $$
 DECLARE
     v_net_sales NUMERIC;
+    v_tax NUMERIC;
     v_cogs NUMERIC;
     v_expenses NUMERIC;
 BEGIN
-    SELECT COALESCE(SUM(s.total_amount), 0) INTO v_net_sales
+    SELECT COALESCE(SUM(s.total_amount), 0), COALESCE(SUM(s.tax_amount), 0)
+    INTO v_net_sales, v_tax
     FROM sales_sale s
     WHERE (p_branch_id IS NULL OR s.branch_id = p_branch_id)
       AND s.status != 'VOIDED'
@@ -160,11 +162,14 @@ BEGIN
     WHERE (p_branch_id IS NULL OR e.branch_id = p_branch_id)
       AND e.expense_date BETWEEN p_date_from AND p_date_to;
 
+    -- Gross profit excludes tax_amount (it's collected on behalf of the
+    -- government, not real profit) — same formula as fn_sales_summary and
+    -- fn_owner_dashboard_summary, so all three dashboards always agree.
     RETURN QUERY SELECT
         v_net_sales::NUMERIC,
         v_cogs::NUMERIC,
-        (v_net_sales - v_cogs)::NUMERIC,
+        (v_net_sales - v_tax - v_cogs)::NUMERIC,
         v_expenses::NUMERIC,
-        (v_net_sales - v_cogs - v_expenses)::NUMERIC;
+        (v_net_sales - v_tax - v_cogs - v_expenses)::NUMERIC;
 END;
 $$ LANGUAGE plpgsql STABLE;

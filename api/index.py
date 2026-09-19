@@ -8,7 +8,6 @@ sys.path.insert(0, str(ROOT))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 import django
-
 django.setup()
 
 from django.core.wsgi import get_wsgi_application

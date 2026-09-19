@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -70,8 +71,8 @@ class PurchaseOrderItem(models.Model):
     medicine = models.ForeignKey('inventory.Medicine', on_delete=models.PROTECT, related_name='purchase_order_items')
     quantity_ordered = models.PositiveIntegerField()
     quantity_received = models.PositiveIntegerField(default=0)
-    unit_cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
-    unit_sale_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    unit_cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
+    unit_sale_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     batch_number = models.CharField(max_length=100, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
 
@@ -102,7 +103,7 @@ class SupplierPayment(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder, null=True, blank=True, on_delete=models.SET_NULL, related_name='payments')
     branch = models.ForeignKey('branches.Branch', on_delete=models.CASCADE, related_name='supplier_payments')
     bank_account = models.ForeignKey('finance.BankAccount', null=True, blank=True, on_delete=models.SET_NULL, related_name='supplier_payments')
-    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0)])
+    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     method = models.CharField(max_length=20, choices=Method.choices, default=Method.BANK_TRANSFER)
     reference_number = models.CharField(max_length=100, blank=True)
     paid_on = models.DateField(auto_now_add=True)

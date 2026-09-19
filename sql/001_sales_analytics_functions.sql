@@ -23,28 +23,48 @@ RETURNS TABLE (
     gross_profit NUMERIC,
     total_returns_amount NUMERIC
 ) AS $$
+DECLARE
+    v_invoices BIGINT;
+    v_subtotal NUMERIC;
+    v_discount NUMERIC;
+    v_tax NUMERIC;
+    v_net_sales NUMERIC;
+    v_units BIGINT;
+    v_cost NUMERIC;
+    v_returns NUMERIC;
 BEGIN
-    RETURN QUERY
+    -- Header-level totals: summed ONCE per sale (not once per joined item row).
     SELECT
-        COUNT(DISTINCT s.id)::BIGINT,
-        COALESCE(SUM(si.quantity - si.quantity_returned), 0)::BIGINT,
-        COALESCE(SUM(s.subtotal), 0)::NUMERIC,
-        COALESCE(SUM(s.discount_amount), 0)::NUMERIC,
-        COALESCE(SUM(s.tax_amount), 0)::NUMERIC,
-        COALESCE(SUM(s.total_amount), 0)::NUMERIC,
-        COALESCE(SUM(si.unit_cost_snapshot * (si.quantity - si.quantity_returned)), 0)::NUMERIC,
-        COALESCE(SUM((si.unit_price - si.unit_cost_snapshot) * (si.quantity - si.quantity_returned) - si.discount_amount), 0)::NUMERIC,
-        COALESCE((
-            SELECT SUM(sr.refund_amount) FROM sales_sale_return sr
-            JOIN sales_sale s2 ON s2.id = sr.sale_id
-            WHERE (p_branch_id IS NULL OR s2.branch_id = p_branch_id)
-              AND sr.created_at::date BETWEEN p_date_from AND p_date_to
-        ), 0)::NUMERIC
+        COUNT(*), COALESCE(SUM(subtotal), 0), COALESCE(SUM(discount_amount), 0),
+        COALESCE(SUM(tax_amount), 0), COALESCE(SUM(total_amount), 0)
+    INTO v_invoices, v_subtotal, v_discount, v_tax, v_net_sales
     FROM sales_sale s
-    JOIN sales_sale_item si ON si.sale_id = s.id
     WHERE (p_branch_id IS NULL OR s.branch_id = p_branch_id)
       AND s.status != 'VOIDED'
       AND s.created_at::date BETWEEN p_date_from AND p_date_to;
+
+    -- Item-level totals: one row per item, safe to SUM directly.
+    SELECT
+        COALESCE(SUM(si.quantity - si.quantity_returned), 0),
+        COALESCE(SUM(si.unit_cost_snapshot * (si.quantity - si.quantity_returned)), 0)
+    INTO v_units, v_cost
+    FROM sales_sale_item si
+    JOIN sales_sale s ON s.id = si.sale_id
+    WHERE (p_branch_id IS NULL OR s.branch_id = p_branch_id)
+      AND s.status != 'VOIDED'
+      AND s.created_at::date BETWEEN p_date_from AND p_date_to;
+
+    SELECT COALESCE(SUM(sr.refund_amount), 0) INTO v_returns
+    FROM sales_sale_return sr
+    JOIN sales_sale s2 ON s2.id = sr.sale_id
+    WHERE (p_branch_id IS NULL OR s2.branch_id = p_branch_id)
+      AND sr.created_at::date BETWEEN p_date_from AND p_date_to;
+
+    RETURN QUERY SELECT
+        v_invoices, v_units, v_subtotal, v_discount, v_tax, v_net_sales,
+        v_cost,
+        (v_net_sales - v_tax - v_cost)::NUMERIC,  -- Gross profit excludes tax (not real profit)
+        v_returns;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
@@ -91,7 +111,7 @@ CREATE OR REPLACE FUNCTION fn_top_selling_medicines(
     p_limit INTEGER DEFAULT 10
 )
 RETURNS TABLE (
-    medicine_id INTEGER,
+    medicine_id BIGINT,
     medicine_name VARCHAR,
     units_sold BIGINT,
     revenue NUMERIC,
@@ -127,7 +147,7 @@ CREATE OR REPLACE FUNCTION fn_cashier_performance(
     p_date_to DATE
 )
 RETURNS TABLE (
-    cashier_id INTEGER,
+    cashier_id BIGINT,
     cashier_name VARCHAR,
     invoices BIGINT,
     net_sales NUMERIC,

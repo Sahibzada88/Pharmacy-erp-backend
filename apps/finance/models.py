@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -43,7 +44,7 @@ class BankTransaction(models.Model):
     bank_account = models.ForeignKey(BankAccount, on_delete=models.CASCADE, related_name='transactions')
     branch = models.ForeignKey('branches.Branch', null=True, blank=True, on_delete=models.SET_NULL, related_name='bank_transactions')
     tx_type = models.CharField(max_length=25, choices=TxType.choices)
-    amount = models.DecimalField(max_digits=16, decimal_places=2, validators=[MinValueValidator(0)])
+    amount = models.DecimalField(max_digits=16, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     reference_number = models.CharField(max_length=100, blank=True)
     note = models.CharField(max_length=255, blank=True)
     created_by = models.ForeignKey('accounts.User', null=True, on_delete=models.SET_NULL, related_name='bank_transactions_made')
@@ -119,7 +120,7 @@ class Expense(models.Model):
 
     branch = models.ForeignKey('branches.Branch', on_delete=models.CASCADE, related_name='expenses')
     category = models.ForeignKey(ExpenseCategory, on_delete=models.PROTECT, related_name='expenses')
-    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0)])
+    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     paid_from = models.CharField(max_length=10, choices=PaidFrom.choices, default=PaidFrom.CASH)
     bank_account = models.ForeignKey(BankAccount, null=True, blank=True, on_delete=models.SET_NULL, related_name='expenses')
     description = models.CharField(max_length=255, blank=True)

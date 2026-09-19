@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from .models import Supplier, PurchaseOrder, PurchaseOrderItem, SupplierPayment
 from apps.inventory.models import Batch, StockMovement
+from apps.accounts.mixins import BranchAutoAssignSerializerMixin
 
 
 class SupplierSerializer(serializers.ModelSerializer):
@@ -33,7 +34,7 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
         ]
 
 
-class PurchaseOrderSerializer(serializers.ModelSerializer):
+class PurchaseOrderSerializer(BranchAutoAssignSerializerMixin, serializers.ModelSerializer):
     items = PurchaseOrderItemSerializer(many=True)
     supplier_name = serializers.CharField(source='supplier.name', read_only=True)
     branch_name = serializers.CharField(source='branch.name', read_only=True)
@@ -49,6 +50,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
             'items', 'total_amount', 'amount_paid', 'balance_due', 'created_at',
         ]
         read_only_fields = ['order_date', 'created_at']
+        extra_kwargs = {'branch': {'required': False}}
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
@@ -129,7 +131,7 @@ class ReceivePurchaseOrderSerializer(serializers.Serializer):
         return created_batches
 
 
-class SupplierPaymentSerializer(serializers.ModelSerializer):
+class SupplierPaymentSerializer(BranchAutoAssignSerializerMixin, serializers.ModelSerializer):
     supplier_name = serializers.CharField(source='supplier.name', read_only=True)
     branch_name = serializers.CharField(source='branch.name', read_only=True)
 
@@ -141,6 +143,7 @@ class SupplierPaymentSerializer(serializers.ModelSerializer):
             'created_by', 'created_at',
         ]
         read_only_fields = ['paid_on', 'created_by', 'created_at']
+        extra_kwargs = {'branch': {'required': False}}
 
     def create(self, validated_data):
         request = self.context['request']

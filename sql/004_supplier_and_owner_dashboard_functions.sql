@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION fn_supplier_dues(
     p_branch_id INTEGER
 )
 RETURNS TABLE (
-    supplier_id INTEGER,
+    supplier_id BIGINT,
     supplier_name VARCHAR,
     total_purchased NUMERIC,
     total_paid NUMERIC,
@@ -94,6 +94,7 @@ RETURNS TABLE (
 ) AS $$
 DECLARE
     v_net_sales NUMERIC := 0;
+    v_tax NUMERIC := 0;
     v_gross_profit NUMERIC := 0;
     v_invoices BIGINT := 0;
     v_stock_value NUMERIC := 0;
@@ -101,21 +102,26 @@ DECLARE
     v_supplier_dues NUMERIC := 0;
     v_low_stock BIGINT := 0;
     v_expiring BIGINT := 0;
+    v_cogs NUMERIC := 0;
 BEGIN
-    SELECT COALESCE(SUM(s.total_amount), 0), COUNT(DISTINCT s.id)
-    INTO v_net_sales, v_invoices
+    SELECT COALESCE(SUM(s.total_amount), 0), COALESCE(SUM(s.tax_amount), 0), COUNT(DISTINCT s.id)
+    INTO v_net_sales, v_tax, v_invoices
     FROM sales_sale s
     WHERE (p_branch_id IS NULL OR s.branch_id = p_branch_id)
       AND s.status != 'VOIDED'
       AND s.created_at::date BETWEEN p_date_from AND p_date_to;
 
-    SELECT COALESCE(SUM((si.unit_price - si.unit_cost_snapshot) * (si.quantity - si.quantity_returned) - si.discount_amount), 0)
-    INTO v_gross_profit
+    SELECT COALESCE(SUM(si.unit_cost_snapshot * (si.quantity - si.quantity_returned)), 0)
+    INTO v_cogs
     FROM sales_sale_item si
     JOIN sales_sale s ON s.id = si.sale_id
     WHERE (p_branch_id IS NULL OR s.branch_id = p_branch_id)
       AND s.status != 'VOIDED'
       AND s.created_at::date BETWEEN p_date_from AND p_date_to;
+
+    -- Same formula as fn_sales_summary / fn_profit_and_loss: gross profit
+    -- excludes tax (it's collected, not earned) and is net of COGS.
+    v_gross_profit := v_net_sales - v_tax - v_cogs;
 
     SELECT COALESCE(SUM(b.quantity_remaining * b.cost_price), 0)
     INTO v_stock_value

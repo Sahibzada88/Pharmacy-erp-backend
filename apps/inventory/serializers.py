@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Category, Manufacturer, Medicine, Batch, StockMovement
+from apps.accounts.mixins import BranchAutoAssignSerializerMixin
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -39,7 +40,7 @@ class MedicineSerializer(serializers.ModelSerializer):
         return sum(b.quantity_remaining for b in qs)
 
 
-class BatchSerializer(serializers.ModelSerializer):
+class BatchSerializer(BranchAutoAssignSerializerMixin, serializers.ModelSerializer):
     medicine_name = serializers.CharField(source='medicine.name', read_only=True)
     branch_name = serializers.CharField(source='branch.name', read_only=True)
     stock_value = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
@@ -55,6 +56,7 @@ class BatchSerializer(serializers.ModelSerializer):
             'is_active', 'stock_value', 'is_expired', 'is_near_expiry',
         ]
         read_only_fields = ['received_date']
+        extra_kwargs = {'branch': {'required': False}}
 
     def get_is_expired(self, obj):
         from django.utils import timezone

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -83,8 +84,8 @@ class Batch(models.Model):
     )
     quantity_received = models.PositiveIntegerField()
     quantity_remaining = models.PositiveIntegerField()
-    cost_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
-    sale_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    cost_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
+    sale_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     expiry_date = models.DateField(db_index=True)
     received_date = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)

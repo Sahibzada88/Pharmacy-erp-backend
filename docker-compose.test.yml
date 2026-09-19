@@ -1,0 +1,16 @@
+version: "3.9"
+
+# A throwaway local Postgres used ONLY for running `pytest`. Keeps automated
+# tests from ever touching your real Supabase data. Django's test runner
+# creates/drops a "test_pharmacy" database on this container automatically.
+services:
+  test-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pharmacy_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data  # ephemeral — wiped every restart, that's intentional

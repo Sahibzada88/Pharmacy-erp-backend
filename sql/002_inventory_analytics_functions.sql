@@ -37,7 +37,7 @@ $$ LANGUAGE plpgsql STABLE;
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_stock_valuation_by_branch()
 RETURNS TABLE (
-    branch_id INTEGER,
+    branch_id BIGINT,
     branch_name VARCHAR,
     total_units BIGINT,
     total_cost_value NUMERIC,
@@ -67,7 +67,7 @@ CREATE OR REPLACE FUNCTION fn_expiry_report(
     p_days INTEGER DEFAULT 60
 )
 RETURNS TABLE (
-    batch_id INTEGER,
+    batch_id BIGINT,
     medicine_name VARCHAR,
     branch_name VARCHAR,
     batch_number VARCHAR,
@@ -106,7 +106,7 @@ CREATE OR REPLACE FUNCTION fn_low_stock_report(
     p_branch_id INTEGER
 )
 RETURNS TABLE (
-    medicine_id INTEGER,
+    medicine_id BIGINT,
     medicine_name VARCHAR,
     sku VARCHAR,
     total_remaining BIGINT,

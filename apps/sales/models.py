@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -16,7 +17,7 @@ class Sale(models.Model):
     customer = models.ForeignKey('crm.Customer', null=True, blank=True, on_delete=models.SET_NULL, related_name='sales')
     cashier = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='sales_made')
     subtotal = models.DecimalField(max_digits=14, decimal_places=2, default=0)
-    discount_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    discount_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('0'))])
     tax_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.COMPLETED)
@@ -70,7 +71,7 @@ class SalePayment(models.Model):
 
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='payments')
     method = models.CharField(max_length=20, choices=Method.choices)
-    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0)])
+    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     bank_account = models.ForeignKey('finance.BankAccount', null=True, blank=True, on_delete=models.SET_NULL, related_name='sale_payments')
     reference_number = models.CharField(max_length=100, blank=True)
 

@@ -114,7 +114,66 @@ This builds the image, runs migrations, and starts the dev server on `http://loc
    `Dockerfile` CMD), then starts `gunicorn`.
 5. Point your Next.js frontend's API base URL at the Railway domain.
 
+## 4.1 Deploying to Vercel (serverless — alternative)
+
+Railway/Docker is the primary, recommended path (a real long-running Django server). Vercel can also
+host this backend as a **Python serverless function**, which is how this project has actually been
+deployed and tested — but it comes with real trade-offs: cold starts, per-request timeout limits, and
+no long-running background processes. Use this if you specifically need free/serverless hosting.
+
+Two extra files make this work, both already included:
+
+- **`vercel.json`** (repo root) — routes every request to the Python entry point:
+  ```json
+  {
+    "routes": [
+      { "src": "/(.*)", "dest": "api/index.py" }
+    ]
+  }
+  ```
+  Do **not** add a `"functions"` block with a pinned `"runtime"` version (e.g. `@vercel/python@3.0.0`)
+  — Vercel's builder-pin resolution is finicky and this exact minimal config is what worked.
+
+- **`api/index.py`** — boots Django as a WSGI app for Vercel's Python runtime:
+  ```python
+  import os, sys
+  from pathlib import Path
+
+  ROOT = Path(__file__).resolve().parent.parent
+  sys.path.insert(0, str(ROOT))
+  os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
+  import django
+  django.setup()
+  from django.core.wsgi import get_wsgi_application
+  app = get_wsgi_application()
+  ```
+
+**Setup steps:**
+1. Push to GitHub as its own repo (e.g. `pharmacy_erp_backend`) — keep it separate from the frontend
+   repo to avoid mix-ups.
+2. In Vercel: **Add New → Project → Import** this repo.
+3. **Framework Preset: Django**, **Root Directory: `/`** (the repo root — `manage.py` lives there).
+4. Add environment variables (Project Settings → Environment Variables):
+   ```
+   SECRET_KEY=your-strong-secret
+   DEBUG=False
+   DATABASE_URL=<your Supabase connection string>
+   ALLOWED_HOSTS=*                (or your exact *.vercel.app domain)
+   CORS_ALLOWED_ORIGINS=*         (or your exact frontend URL — see note below)
+   ```
+5. Deploy. `requirements.txt` already includes `setuptools>=75.0.0` — without it, the build fails with
+   `ModuleNotFoundError: No module named 'pkg_resources'` (needed by `drf-yasg`) on Vercel's Python
+   runtime specifically (this doesn't happen on Railway/Docker, which is why it's easy to miss).
+6. **The root URL (`/`) will 404 — this is expected.** There's no homepage view; this is an API. Test
+   real routes instead: `/api/docs/`, `/api/auth/login/` (POST), `/admin/`.
+7. `ALLOWED_HOSTS=*` and `CORS_ALLOWED_ORIGINS=*` are fine for initial testing (Django and this
+   project's `settings.py` both natively support `*` as "allow everything") but should be narrowed to
+   your exact domains before real use — see the CORS/`ALLOWED_HOSTS` notes in `.env.example`.
+
 ---
+
+
 
 ## 5. Authentication
 
@@ -140,6 +199,7 @@ immediately after login without an extra API call.
 ```
 GET/POST      /api/inventory/medicines/
 GET           /api/inventory/medicines/low_stock/
+POST          /api/inventory/medicines/bulk-import/  (CSV upload — add hundreds of medicines + opening stock at once)
 GET/POST      /api/inventory/batches/
 GET           /api/inventory/batches/expiring_soon/?days=60
 POST          /api/inventory/batches/adjust/          (damaged/expired write-off)
@@ -227,7 +287,66 @@ The backend automatically:
 
 ---
 
-## 8. Extending this backend
+## 9. Automated testing
+
+An automated pytest suite lives alongside the manual test plan spreadsheets and covers the
+highest-value scenarios: FEFO stock deduction, atomic checkout rollback, low-stock boundary
+conditions, bulk CSV import, and — most importantly — a **regression test for the exact
+Owner-Dashboard-vs-Finance profit mismatch bug** found during manual testing, so it can never
+silently come back after a future SQL change.
+
+### Setup (isolated from your real Supabase data — never run tests against production data)
+```bash
+pip install -r requirements-dev.txt
+
+# Spin up a throwaway local Postgres just for tests:
+docker compose -f docker-compose.test.yml up -d
+
+# Point Django at it (only for this terminal session):
+# macOS/Linux:
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5433/pharmacy_test
+# Windows PowerShell:
+$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5433/pharmacy_test"
+
+pytest
+```
+Postgres (not SQLite) is required because several tests exercise the actual `/sql/*.sql` stored
+procedures — those are silently skipped on non-Postgres backends by the
+`analytics.0001_install_functions` migration, and tests needing them auto-skip with a clear reason
+if run on the wrong backend.
+
+### What's covered so far
+- `apps/sales/tests/test_checkout.py` — FEFO batch selection & splitting, insufficient-stock
+  rejection, atomic rollback on payment mismatch, stock-movement audit trail, returns.
+- `apps/inventory/tests/test_stock_logic.py` — stock valuation math, low-stock `<=` boundary,
+  expiry-day calendar accuracy.
+- `apps/inventory/tests/test_bulk_import.py` — CSV import counts, upsert-by-SKU behavior, one bad
+  row not blocking the rest of the file.
+- `apps/accounts/tests/test_auth.py` — login/JWT claims, a representative slice of role-based
+  access control, branch-scoping data isolation.
+- `apps/analytics/tests/test_profit_consistency.py` — **the regression test for the profit-formula
+  bug**: asserts Owner Dashboard, Finance P&L, and Sales Summary all report identical gross profit
+  for the same data, and that tax is never counted as profit.
+
+This isn't 1:1 coverage of every row in the manual test plan spreadsheets — it automates the
+scenarios most likely to silently break (money math, stock integrity) so those get caught
+immediately on every push, while UI/visual checks stay in the manual spreadsheets.
+
+### Continuous Integration
+`.github/workflows/backend-tests.yml` runs this full suite automatically on every push/PR to
+`main`, spinning up a real Postgres service container in GitHub Actions (no setup needed on your
+end beyond pushing to GitHub — check the "Actions" tab on your repo after pushing).
+
+### Adding more tests
+Follow the existing pattern: fixtures in `conftest.py` (`owner_client`, `cashier_client`, `branch`,
+`medicine`, etc. — reuse them, don't recreate similar setup in every test file), one test class per
+feature area, one `def test_...` per Business-Logic row you want automated. Prioritize anything
+that touches money, stock quantities, or cross-page number consistency — those are the bugs that
+are easy to introduce silently and hard to catch by eye.
+
+---
+
+## 10. Extending this backend
 - **Frontend**: pairs naturally with Next.js (Vercel) — CORS is pre-configured; just set
   `CORS_ALLOWED_ORIGINS` in `.env`.
 - **Prescriptions / e-Rx**: add a `Prescription` model in `crm` or a new `prescriptions` app; link
