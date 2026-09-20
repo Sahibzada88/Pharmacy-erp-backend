@@ -57,6 +57,8 @@ class TestLowStockBoundary:
 class TestExpiryMath:
     @freeze_time("2026-09-12")
     def test_days_to_expiry_is_calendar_accurate(self, pharmacist_client, branch, medicine):
+        if hasattr(pharmacist_client, 'user'):
+            pharmacist_client.force_authenticate(user=pharmacist_client.user)
         batch = Batch.objects.create(
             medicine=medicine, branch=branch, batch_number="EXP-CHECK-01",
             quantity_received=10, quantity_remaining=10,
