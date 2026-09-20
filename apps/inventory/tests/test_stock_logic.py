@@ -55,7 +55,7 @@ class TestLowStockBoundary:
 
 @pytest.mark.django_db
 class TestExpiryMath:
-    @freeze_time("2026-09-12")
+    @freeze_time("2026-09-12 00:00:00+05:00")
     def test_days_to_expiry_is_calendar_accurate(self, pharmacist_client, branch, medicine):
         # Locate the user linked to the client fixture and force a deep API authentication refresh
         user = getattr(pharmacist_client, "user", None)
