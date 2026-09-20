@@ -57,14 +57,27 @@ class TestLowStockBoundary:
 class TestExpiryMath:
     @freeze_time("2026-09-12")
     def test_days_to_expiry_is_calendar_accurate(self, pharmacist_client, branch, medicine):
-        if hasattr(pharmacist_client, 'user'):
-            pharmacist_client.force_authenticate(user=pharmacist_client.user)
+        # Locate the user linked to the client fixture and force a deep API authentication refresh
+        user = getattr(pharmacist_client, "user", None)
+        if not user:
+            # Fallback lookup: find the pharmacist user assigned to this branch
+            from django.contrib.auth import get_user_model
+            user = get_user_model().objects.filter(role="PHARMACIST").first()
+            
+        if user:
+            pharmacist_client.force_authenticate(user=user)
+            # Some DRF fixtures require explicit credentials headers alongside force_authenticate
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(user)
+            pharmacist_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
         batch = Batch.objects.create(
             medicine=medicine, branch=branch, batch_number="EXP-CHECK-01",
             quantity_received=10, quantity_remaining=10,
             cost_price=Decimal("5.00"), sale_price=Decimal("8.00"),
             expiry_date=date(2026, 10, 2),  # exactly 20 days from the frozen "today"
         )
+        
         response = pharmacist_client.get(
             "/api/analytics/inventory/expiry-report/", {"branch": branch.id, "days": 90}
         )
