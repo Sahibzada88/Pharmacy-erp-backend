@@ -27,9 +27,11 @@ jobs:
 
     env:
       SECRET_KEY: ci-test-secret-key-not-for-production
-      DEBUG: "False"
+      # Changed from False to True so your settings.py sets ssl_require=False in CI
+      DEBUG: "True"
       ALLOWED_HOSTS: "*"
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pharmacy_test
+      # Changed from localhost to 127.0.0.1 to avoid IPv6 loopback connection errors
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/pharmacy_test
       CORS_ALLOWED_ORIGINS: "*"
 
     steps:
