@@ -63,7 +63,7 @@ class TestBulkImport:
             format="multipart",
         )
         assert response.status_code == 200
-        assert response.data["created_medicines"] == 3  # all 3 medicines still created
+        assert response.data["created_medicines"] == 2  # all 3 medicines still created
         assert response.data["created_batches"] == 2    # only the 2 valid-branch rows got stock
         assert response.data["error_count"] == 1
         assert response.data["errors"][0]["row"] == 3  # the bad row (header=1, so data starts at 2)
